@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "getopt.h": "c",
+        "unistd.h": "c",
+        "barberodormilon": "c"
+    }
+}

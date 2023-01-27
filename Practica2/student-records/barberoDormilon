@@ -1,0 +1,70 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <semaphore.h>
+
+
+//variables
+#define N 5
+// 0 libre, 1 ocupado
+
+int sillas = N;
+
+pthread_mutex_t m;
+pthread_cond_t libre,ocupada;
+
+
+//programa
+
+void* consumidor(void* arg){
+    int id = (int)arg;
+    while(1){
+        pthread_mutex_lock(&m);
+        while(sillas == 0){
+            pthread_cond_wait(&libre,&m);
+        }
+        sillas--;
+        pthread_cond_signal(&ocupada);
+        recibir_corte_pelo();
+        pthread_mutex_unlock(&m);
+    }
+}
+
+void* productor(void*arg){
+    while(1){
+        pthread_mutex_lock(&m);
+        while(sillas == N){
+            pthread_cond_wait(&ocupada,&m);
+        }
+        cortarpelo();
+        sillas++;
+        pthread_cond_signal(&libre);
+        pthread_mutex_unlock(&m);
+    }
+}
+
+//--------------------------------------------------------------
+
+sem_t ms, sillas_sem;
+
+void* consumidor_semaforos(void*arg){
+    while(1){
+        sem_wait(&sillas_sem);
+        sem_wait(&ms);
+        cortarpelo();
+        recibir_corte_pelo();
+        sem_post(&ms);
+        sem_post(&sillas_sem);
+    }
+}
+
+
+int main(){
+    sem_init(&ms,0,1);
+    sem_init(&sillas_sem,0,N);
+    return 0;
+}
+
+
+
